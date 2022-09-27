@@ -25,13 +25,14 @@ public class TaskItemServiceImpl implements TaskItemService {
     @Override
     public ResponseTaskDTO createTask(RequestTaskDTO requestTaskDTO) {
 
-        Assignee assignee = assigneeRepository.findById(requestTaskDTO.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND);
+        Assignee assignee = assigneeRepository.findById(requestTaskDTO.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        TaskItem taskParent = taskItemRepository.findById(requestTaskDTO.getParentTaskId()).orElse(null);
 
         TaskItem taskItem = TaskItem.builder()
                 .name(requestTaskDTO.getName())
                 .assignee(assignee)
-                .parentTask(requestTaskDTO.getParentTaskId())
-                .taskType(setTaskType(requestTaskDTO.getParentTaskId()))
+                .parentTask(taskParent)
+                .taskType(setTaskType(taskParent))
                 .taskStatus(TaskStatus.TODO)
                 .build();
 
@@ -41,15 +42,19 @@ public class TaskItemServiceImpl implements TaskItemService {
                 .id(taskItem.getId())
                 .name(taskItem.getName())
                 .assigneeId(assignee.getId())
-                .parentTaskId(taskItem.getParentTask())
+                .parentTaskId(taskParent == null ? null :taskParent.getId())
                 .taskStatus(taskItem.getTaskStatus())
                 .taskType(taskItem.getTaskType())
                 .build();
     }
 
-    private TaskType setTaskType(Long parentTaskId) {
+    private TaskType setTaskType(TaskItem parentTask) {
 
-        TaskType taskTypeParent = taskItemRepository.findById(parentTaskId).get().getTaskType();
+        if (parentTask == null) {
+            return TaskType.PROJECT;
+        }
+
+        TaskType taskTypeParent = parentTask.getTaskType();
 
         switch (taskTypeParent) {
             case PROJECT:
