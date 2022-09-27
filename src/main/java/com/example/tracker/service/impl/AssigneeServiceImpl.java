@@ -1,6 +1,7 @@
 package com.example.tracker.service.impl;
 
-import com.example.tracker.dto.AssigneeDTO;
+import com.example.tracker.dto.RequestAssigneeDTO;
+import com.example.tracker.dto.ResponseAssigneeDTO;
 import com.example.tracker.entities.AccountStatus;
 import com.example.tracker.entities.Assignee;
 import com.example.tracker.repository.AssigneeRepository;
@@ -20,30 +21,59 @@ public class AssigneeServiceImpl implements AssigneeService {
     private final AssigneeRepository assigneeRepository;
 
     @Override
-    public AssigneeDTO createAssignee(AssigneeDTO assigneeDTO) {
+    public ResponseAssigneeDTO createAssignee(RequestAssigneeDTO assigneeDTO) {
+
         Assignee assignee = Assignee.builder()
                 .name(assigneeDTO.getName())
+                .accountStatus(AccountStatus.ACTIVE)
                 .build();
 
-        assignee.setAccountStatus(AccountStatus.ACTIVE);
         assignee = assigneeRepository.save(assignee);
 
-        assigneeDTO.setId(assignee.getId());
-        assigneeDTO.setAccountStatus(AccountStatus.ACTIVE);
-
-        return assigneeDTO;
+        return ResponseAssigneeDTO.builder()
+                .id(assignee.getId())
+                .name(assignee.getName())
+                .accountStatus(assignee.getAccountStatus())
+                .build();
     }
 
     @Override
-    public List<AssigneeDTO> getAssignees() {
-        return null;
+    public List<ResponseAssigneeDTO> getAssignees() {
+
+        return assigneeRepository.findAll().stream()
+                .map(assignee -> ResponseAssigneeDTO.builder()
+                        .id(assignee.getId())
+                        .name(assignee.getName())
+                        .accountStatus(assignee.getAccountStatus())
+                        .build()).toList();
     }
 
     @Override
-    public AssigneeDTO getAssignee(Long id) {
+    public ResponseAssigneeDTO getAssignee(Long id) {
+
         Assignee assignee = assigneeRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        return AssigneeDTO.builder()
+        return ResponseAssigneeDTO.builder()
+                .id(assignee.getId())
+                .name(assignee.getName())
+                .accountStatus(assignee.getAccountStatus())
+                .build();
+    }
+
+    @Override
+    public ResponseAssigneeDTO changeStatusAssignee(Long id) {
+
+        Assignee assignee = assigneeRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (assignee.getAccountStatus()==AccountStatus.INACTIVE) {
+            assignee.setAccountStatus(AccountStatus.ACTIVE);
+        } else {
+            assignee.setAccountStatus(AccountStatus.INACTIVE);
+        }
+
+        assignee = assigneeRepository.save(assignee);
+
+        return ResponseAssigneeDTO.builder()
                 .id(assignee.getId())
                 .name(assignee.getName())
                 .accountStatus(assignee.getAccountStatus())

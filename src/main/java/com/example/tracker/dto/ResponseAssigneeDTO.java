@@ -1,15 +1,16 @@
 package com.example.tracker.dto;
 
 import com.example.tracker.entities.AccountStatus;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Builder
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 
-public class AssigneeDTO {
+
+public class ResponseAssigneeDTO {
     private Long id;
     private String name;
     private AccountStatus accountStatus;

@@ -1,14 +1,17 @@
 package com.example.tracker.service;
 
-import com.example.tracker.dto.AssigneeDTO;
+import com.example.tracker.dto.RequestAssigneeDTO;
+import com.example.tracker.dto.ResponseAssigneeDTO;
 
 import java.util.List;
 
 public interface AssigneeService {
 
-    AssigneeDTO createAssignee (AssigneeDTO assigneeDTO);
+    ResponseAssigneeDTO createAssignee (RequestAssigneeDTO assigneeDTO);
 
-    List<AssigneeDTO> getAssignees();
+    List<ResponseAssigneeDTO> getAssignees();
 
-    AssigneeDTO getAssignee (Long id);
+    ResponseAssigneeDTO getAssignee (Long id);
+
+    ResponseAssigneeDTO changeStatusAssignee(Long id);
 }
