@@ -25,7 +25,7 @@ public class Assignee {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "accountStatus")
+    @Column(name = "account_status")
     private AccountStatus accountStatus;
 
     @OneToMany(mappedBy = "assignee")

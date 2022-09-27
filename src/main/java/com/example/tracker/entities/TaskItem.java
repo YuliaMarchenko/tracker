@@ -28,14 +28,14 @@ public class TaskItem {
     private Assignee assignee;
 
     @ManyToOne
-    @JoinColumn(name = "parentTask_id")
+    @JoinColumn(name = "parent_task_id")
     private TaskItem parentTask;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "taskType")
+    @Column(name = "task_type")
     private TaskType taskType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "taskStatus")
+    @Column(name = "task_status")
     private TaskStatus taskStatus;
 }

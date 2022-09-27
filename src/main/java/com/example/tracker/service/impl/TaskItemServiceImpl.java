@@ -26,8 +26,13 @@ public class TaskItemServiceImpl implements TaskItemService {
     public ResponseTaskDTO createTask(RequestTaskDTO requestTaskDTO) {
 
         Assignee assignee = assigneeRepository.findById(requestTaskDTO.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        TaskItem taskParent = taskItemRepository.findById(requestTaskDTO.getParentTaskId()).orElse(null);
 
+        TaskItem taskParent;
+        if (requestTaskDTO.getParentTaskId() != null) {
+            taskParent = taskItemRepository.findById(requestTaskDTO.getParentTaskId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        }else {
+            taskParent = null;
+        }
         TaskItem taskItem = TaskItem.builder()
                 .name(requestTaskDTO.getName())
                 .assignee(assignee)
