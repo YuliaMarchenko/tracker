@@ -13,8 +13,6 @@ import lombok.*;
 public class ResponseTaskDTO {
     private Long id;
     private String name;
-    private Long assigneeId;
-    private Long parentTaskId;
     private TaskType taskType;
     private TaskStatus taskStatus;
 }

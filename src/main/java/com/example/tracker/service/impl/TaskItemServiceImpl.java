@@ -24,7 +24,7 @@ public class TaskItemServiceImpl implements TaskItemService {
     private final AssigneeRepository assigneeRepository;
 
     @Override
-    public ResponseTaskDTO createTask(RequestTaskDTO requestTaskDTO) {
+    public ResponseTaskFullInfoDTO createTask(RequestTaskDTO requestTaskDTO) {
 
         Assignee assignee = assigneeRepository.findById(requestTaskDTO.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -46,20 +46,33 @@ public class TaskItemServiceImpl implements TaskItemService {
 
         taskItem = taskItemRepository.save(taskItem);
 
-        return ResponseTaskDTO.builder()
+        return ResponseTaskFullInfoDTO.builder()
                 .id(taskItem.getId())
                 .name(taskItem.getName())
-                .assigneeId(assignee.getId())
-                .parentTaskId(taskParent == null ? null : taskParent.getId())
-                .taskStatus(taskItem.getTaskStatus())
                 .taskType(taskItem.getTaskType())
+                .taskStatus(taskItem.getTaskStatus())
+                .parentTask(taskParent == null ? null : ResponseTaskShortDTO.builder()
+                        .id(taskParent.getId())
+                        .name(taskParent.getName())
+                        .build())
+                .assignee(assignee == null ? null : ResponseAssigneeDTO.builder()
+                        .id(assignee.getId())
+                        .name(assignee.getName())
+                        .accountStatus(assignee.getAccountStatus())
+                        .build())
+                .subTasks(taskItem.getSubTasks() == null ? null : taskItem.getSubTasks()
+                        .stream()
+                        .map(task -> ResponseTaskShortDTO.builder()
+                                .id(task.getId())
+                                .name(task.getName())
+                                .build()).toList())
                 .build();
     }
 
     @Override
-    public List<ResponseTaskForListDTO> getTasks() {
+    public List<ResponseTaskDTO> getTasks() {
         return taskItemRepository.findAll().stream()
-                .map(taskItem -> ResponseTaskForListDTO.builder()
+                .map(taskItem -> ResponseTaskDTO.builder()
                         .id(taskItem.getId())
                         .name(taskItem.getName())
                         .taskStatus(taskItem.getTaskStatus())
@@ -91,6 +104,48 @@ public class TaskItemServiceImpl implements TaskItemService {
                         .id(task.getId())
                         .name(task.getName())
                         .build()).toList())
+                .build();
+    }
+
+    @Override
+    public ResponseTaskDTO promote(Long id) {
+
+        TaskItem taskItem = taskItemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        switch (taskItem.getTaskStatus()){
+            case TODO -> taskItem.setTaskStatus(TaskStatus.ANALYSIS);
+            case ANALYSIS -> taskItem.setTaskStatus(TaskStatus.IN_PROGRESS);
+            case IN_PROGRESS -> taskItem.setTaskStatus(TaskStatus.DONE);
+        }
+
+        taskItemRepository.save(taskItem);
+
+        return ResponseTaskDTO.builder()
+                .id(taskItem.getId())
+                .name(taskItem.getName())
+                .taskStatus(taskItem.getTaskStatus())
+                .taskType(taskItem.getTaskType())
+                .build();
+    }
+
+    @Override
+    public ResponseTaskDTO demote(Long id) {
+
+        TaskItem taskItem = taskItemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        switch (taskItem.getTaskStatus()){
+            case DONE -> taskItem.setTaskStatus(TaskStatus.IN_PROGRESS);
+            case IN_PROGRESS -> taskItem.setTaskStatus(TaskStatus.ANALYSIS);
+            case ANALYSIS -> taskItem.setTaskStatus(TaskStatus.TODO);
+        }
+
+        taskItemRepository.save(taskItem);
+
+        return ResponseTaskDTO.builder()
+                .id(taskItem.getId())
+                .name(taskItem.getName())
+                .taskStatus(taskItem.getTaskStatus())
+                .taskType(taskItem.getTaskType())
                 .build();
     }
 
