@@ -1,10 +1,8 @@
 package com.example.tracker.service.impl;
 
+import com.example.tracker.converter.TaskItemConverter;
 import com.example.tracker.dto.*;
-import com.example.tracker.entities.Assignee;
-import com.example.tracker.entities.TaskItem;
-import com.example.tracker.entities.TaskStatus;
-import com.example.tracker.entities.TaskType;
+import com.example.tracker.entities.*;
 import com.example.tracker.repository.AssigneeRepository;
 import com.example.tracker.repository.TaskItemRepository;
 import com.example.tracker.service.TaskItemService;
@@ -25,13 +23,19 @@ public class TaskItemServiceImpl implements TaskItemService {
 
     @Override
     public ResponseTaskFullInfoDTO createTask(RequestTaskDTO requestTaskDTO) {
-
         Assignee assignee = assigneeRepository.findById(requestTaskDTO.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (assignee.getAccountStatus() == AccountStatus.INACTIVE) {
+            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED,
+                    String.format("Assignee with ID %d is in status [INACTIVE]", assignee.getId()));
+        }
 
         TaskItem taskParent;
 
         if (requestTaskDTO.getParentTaskId() != null) {
-            taskParent = taskItemRepository.findById(requestTaskDTO.getParentTaskId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+            taskParent = taskItemRepository.findById(requestTaskDTO.getParentTaskId()).orElseThrow(
+                    () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            String.format("Parent task with ID %d cannot be found", requestTaskDTO.getParentTaskId()))
+            );
         } else {
             taskParent = null;
         }
@@ -46,65 +50,19 @@ public class TaskItemServiceImpl implements TaskItemService {
 
         taskItem = taskItemRepository.save(taskItem);
 
-        return ResponseTaskFullInfoDTO.builder()
-                .id(taskItem.getId())
-                .name(taskItem.getName())
-                .taskType(taskItem.getTaskType())
-                .taskStatus(taskItem.getTaskStatus())
-                .parentTask(taskParent == null ? null : ResponseTaskShortDTO.builder()
-                        .id(taskParent.getId())
-                        .name(taskParent.getName())
-                        .build())
-                .assignee(assignee == null ? null : ResponseAssigneeDTO.builder()
-                        .id(assignee.getId())
-                        .name(assignee.getName())
-                        .accountStatus(assignee.getAccountStatus())
-                        .build())
-                .subTasks(taskItem.getSubTasks() == null ? null : taskItem.getSubTasks()
-                        .stream()
-                        .map(task -> ResponseTaskShortDTO.builder()
-                                .id(task.getId())
-                                .name(task.getName())
-                                .build()).toList())
-                .build();
+        return TaskItemConverter.convertToFullInfoDTO(taskItem);
     }
 
     @Override
     public List<ResponseTaskDTO> getTasks() {
         return taskItemRepository.findAll().stream()
-                .map(taskItem -> ResponseTaskDTO.builder()
-                        .id(taskItem.getId())
-                        .name(taskItem.getName())
-                        .taskStatus(taskItem.getTaskStatus())
-                        .taskType(taskItem.getTaskType())
-                        .build()).toList();
+                .map(taskItem -> TaskItemConverter.convertToTaskDTO(taskItem)).toList();
     }
 
     @Override
     public ResponseTaskFullInfoDTO getTask(Long id) {
         TaskItem taskItem = taskItemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        TaskItem taskParent = taskItem.getParentTask();
-        Assignee assignee = taskItem.getAssignee();
-
-        return ResponseTaskFullInfoDTO.builder()
-                .id(taskItem.getId())
-                .name(taskItem.getName())
-                .taskType(taskItem.getTaskType())
-                .taskStatus(taskItem.getTaskStatus())
-                .parentTask(taskParent == null ? null : ResponseTaskShortDTO.builder()
-                        .id(taskParent.getId())
-                        .name(taskParent.getName())
-                        .build())
-                .assignee(assignee == null ? null : ResponseAssigneeDTO.builder()
-                        .id(assignee.getId())
-                        .name(assignee.getName())
-                        .accountStatus(assignee.getAccountStatus())
-                        .build())
-                .subTasks(taskItem.getSubTasks().stream().map(task -> ResponseTaskShortDTO.builder()
-                        .id(task.getId())
-                        .name(task.getName())
-                        .build()).toList())
-                .build();
+        return TaskItemConverter.convertToFullInfoDTO(taskItem);
     }
 
     @Override
@@ -112,7 +70,7 @@ public class TaskItemServiceImpl implements TaskItemService {
 
         TaskItem taskItem = taskItemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        switch (taskItem.getTaskStatus()){
+        switch (taskItem.getTaskStatus()) {
             case TODO -> taskItem.setTaskStatus(TaskStatus.ANALYSIS);
             case ANALYSIS -> taskItem.setTaskStatus(TaskStatus.IN_PROGRESS);
             case IN_PROGRESS -> taskItem.setTaskStatus(TaskStatus.DONE);
@@ -120,12 +78,7 @@ public class TaskItemServiceImpl implements TaskItemService {
 
         taskItemRepository.save(taskItem);
 
-        return ResponseTaskDTO.builder()
-                .id(taskItem.getId())
-                .name(taskItem.getName())
-                .taskStatus(taskItem.getTaskStatus())
-                .taskType(taskItem.getTaskType())
-                .build();
+        return TaskItemConverter.convertToTaskDTO(taskItem);
     }
 
     @Override
@@ -133,7 +86,7 @@ public class TaskItemServiceImpl implements TaskItemService {
 
         TaskItem taskItem = taskItemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        switch (taskItem.getTaskStatus()){
+        switch (taskItem.getTaskStatus()) {
             case DONE -> taskItem.setTaskStatus(TaskStatus.IN_PROGRESS);
             case IN_PROGRESS -> taskItem.setTaskStatus(TaskStatus.ANALYSIS);
             case ANALYSIS -> taskItem.setTaskStatus(TaskStatus.TODO);
@@ -141,12 +94,7 @@ public class TaskItemServiceImpl implements TaskItemService {
 
         taskItemRepository.save(taskItem);
 
-        return ResponseTaskDTO.builder()
-                .id(taskItem.getId())
-                .name(taskItem.getName())
-                .taskStatus(taskItem.getTaskStatus())
-                .taskType(taskItem.getTaskType())
-                .build();
+        return TaskItemConverter.convertToTaskDTO(taskItem);
     }
 
     private TaskType setTaskType(TaskItem parentTask) {
@@ -163,8 +111,10 @@ public class TaskItemServiceImpl implements TaskItemService {
             case FEATURE:
                 return TaskType.EPIC;
             case EPIC:
-            case TASK:
                 return TaskType.TASK;
+            case TASK:
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "Cannot create a subtask out of the lowest task type [Task]");
             default:
                 return TaskType.PROJECT;
         }
