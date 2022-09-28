@@ -3,6 +3,7 @@ package com.example.tracker.entities;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "task_item")
@@ -30,6 +31,10 @@ public class TaskItem {
     @ManyToOne
     @JoinColumn(name = "parent_task_id")
     private TaskItem parentTask;
+
+    @OneToMany
+    @JoinColumn(name = "parent_task_id")
+    private List<TaskItem> subTasks;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "task_type")
