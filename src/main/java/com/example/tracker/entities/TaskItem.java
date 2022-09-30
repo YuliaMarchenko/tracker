@@ -1,5 +1,7 @@
 package com.example.tracker.entities;
 
+import com.example.tracker.entities.type.TaskStatus;
+import com.example.tracker.entities.type.TaskType;
 import lombok.*;
 
 import javax.persistence.*;

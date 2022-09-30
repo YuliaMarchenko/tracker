@@ -1,9 +1,7 @@
 package com.example.tracker.dto;
 
-import com.example.tracker.entities.Assignee;
-import com.example.tracker.entities.TaskItem;
-import com.example.tracker.entities.TaskStatus;
-import com.example.tracker.entities.TaskType;
+import com.example.tracker.entities.type.TaskStatus;
+import com.example.tracker.entities.type.TaskType;
 import lombok.*;
 
 import java.util.List;

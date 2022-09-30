@@ -1,4 +1,4 @@
-package com.example.tracker.converter;
+package com.example.tracker.entities.converter;
 
 import com.example.tracker.dto.ResponseAssigneeDTO;
 import com.example.tracker.dto.ResponseTaskDTO;

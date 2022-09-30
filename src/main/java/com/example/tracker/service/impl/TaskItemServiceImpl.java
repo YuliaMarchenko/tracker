@@ -1,8 +1,11 @@
 package com.example.tracker.service.impl;
 
-import com.example.tracker.converter.TaskItemConverter;
+import com.example.tracker.entities.converter.TaskItemConverter;
 import com.example.tracker.dto.*;
 import com.example.tracker.entities.*;
+import com.example.tracker.entities.type.AccountStatus;
+import com.example.tracker.entities.type.TaskStatus;
+import com.example.tracker.entities.type.TaskType;
 import com.example.tracker.repository.AssigneeRepository;
 import com.example.tracker.repository.TaskItemRepository;
 import com.example.tracker.service.TaskItemService;

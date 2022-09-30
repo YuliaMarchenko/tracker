@@ -1,5 +1,6 @@
 package com.example.tracker.entities;
 
+import com.example.tracker.entities.type.AccountStatus;
 import lombok.*;
 
 import javax.persistence.*;

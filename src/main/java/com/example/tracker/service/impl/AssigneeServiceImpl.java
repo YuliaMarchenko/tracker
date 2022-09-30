@@ -2,7 +2,7 @@ package com.example.tracker.service.impl;
 
 import com.example.tracker.dto.RequestAssigneeDTO;
 import com.example.tracker.dto.ResponseAssigneeDTO;
-import com.example.tracker.entities.AccountStatus;
+import com.example.tracker.entities.type.AccountStatus;
 import com.example.tracker.entities.Assignee;
 import com.example.tracker.repository.AssigneeRepository;
 import com.example.tracker.service.AssigneeService;

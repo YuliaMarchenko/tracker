@@ -1,6 +1,6 @@
 package com.example.tracker.dto;
 
-import com.example.tracker.entities.AccountStatus;
+import com.example.tracker.entities.type.AccountStatus;
 import lombok.*;
 
 @Builder
