@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+
+    <changeSet author="yulia_marchenko" id="1">
+        <createTable tableName="assignee">
+
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="assignee_pkey"/>
+            </column>
+
+            <column name="account_status" type="VARCHAR(255)"/>
+
+            <column name="name" type="VARCHAR(255)"/>
+
+        </createTable>
+
+        <createTable tableName="task_item">
+
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="task_item_pkey"/>
+            </column>
+
+            <column name="name" type="VARCHAR(255)"/>
+
+            <column name="task_status" type="VARCHAR(255)"/>
+
+            <column name="task_type" type="VARCHAR(255)"/>
+
+            <column name="assignee_id" type="BIGINT">
+                <constraints foreignKeyName="assignee_id_task_item_id_assignee"
+                             referencedTableName="assignee"
+                             referencedColumnNames="id"/>
+            </column>
+
+            <column name="parent_task_id" type="BIGINT">
+                <constraints foreignKeyName="parent_task_id_task_item_id_task_item"
+                             referencedTableName="task_item"
+                             referencedColumnNames="id"/>
+            </column>
+
+        </createTable>
+
+    </changeSet>
+
+</databaseChangeLog>
